@@ -1,4 +1,5 @@
 import { GameObject } from "./GameObject"; // 地图里包含游戏对象
+import { Snake } from "./Snake";
 import { Wall } from "./Wall"; // 地图里包含墙
 
 export class GameMap extends GameObject {
@@ -15,6 +16,13 @@ export class GameMap extends GameObject {
 
         this.inner_walls_count = 20; // 内部墙的个数
         this.walls = []; // 墙；在后面加入，所以会覆盖掉地图
+
+        //创建两条蛇
+        this.snakes = [
+            new Snake({id: 0, color: "#4876EC", r: this.rows - 2, c: 1}, this),
+            new Snake({id: 1, color: "#F94848", r: 1, c: this.columns - 2}, this),
+        ]
+
     }
 
     // 查看地图的连通性: flood fill算法
@@ -60,10 +68,11 @@ export class GameMap extends GameObject {
             for (let j = 0; j < 1000; j ++) {
                 let r = parseInt(Math.random() * this.rows); // random函数随机取[0,1）之间的浮点数，乘上rows就是0 ~ rows - 1的值
                 let c = parseInt(Math.random() * this.columns);
-                if (g[r][c] || g[c][r]) continue; // 中心对称
+                // 中心对称，到中心点的横纵坐标相等
+                if (g[r][c] || g[this.rows - 1 - r][this.columns - 1 - c]) continue; 
                 if (r == this.rows - 2 && c == 1 || c == this.columns - 2 && r == 1) continue; // 保证不会覆盖掉左上角和右下角，用来放蛇
 
-                g[r][c] = g[c][r] = true;
+                g[r][c] = g[this.rows - 1 - r][this.colums - 1 - c] = true;
                 
                 break;
             }
@@ -89,6 +98,28 @@ export class GameMap extends GameObject {
         return true; // 如果连通的话返回true
 }
 
+    add_listening_events() {
+        // 给canvas绑定一个获取用户输入信息的事件
+        this.ctx.canvas.focus(); // 获取用户输入前需要聚焦canvas
+
+        const [snake0, snake1] = this.snakes; // 取出两条蛇
+        this.ctx.canvas.addEventListener("keydown", e => { 
+            // API: addEventListener, 绑定一个keydown事件
+            // 怎么判断当前输入的key：wasd控制其中一条，上下左右方向键控制另一条
+            if (e.key === "w") snake0.set_direction(0);
+            else if (e.key === "d") snake0.set_direction(1);
+            else if (e.key === "s") snake0.set_direction(2);
+            else if (e.key === "a") snake0.set_direction(3);
+            else if (e.key === "ArrowUp") snake1.set_direction(0);
+            else if (e.key === "ArrowRight") snake1.set_direction(1);
+            else if (e.key === "ArrowDown") snake1.set_direction(2);
+            else if (e.key === "ArrowLeft") snake1.set_direction(3);
+
+        });
+
+
+    }
+
     start() {
         // 初始时创建墙; 不是连通的就一直随机直到连通
         // 随机1000次
@@ -97,6 +128,8 @@ export class GameMap extends GameObject {
                 break;
             }
         }
+
+        this.add_listening_events();
     }
 
     update_size() {
@@ -106,8 +139,57 @@ export class GameMap extends GameObject {
         this.ctx.canvas.height = this.L * this.rows;
     }
 
+    check_ready() {
+        // 判断是否准备好进入下一回合
+        for (const snake of this.snakes) {
+            if (snake.status !== "idle") return false; // 蛇还在移动，不能进入下一回合；判断不相等：！==
+            if (snake.direction === -1) return false; // 蛇没有下一回合指令，不能进入下一回合；判断相等是三个等号
+        }
+
+        return true;
+    }
+
+    next_step() {
+        // 让蛇进入下一回合
+        for (const snake of this.snakes) {
+            snake.next_step();
+        }
+
+    }
+    
+    // 检测目标位置是否合法：没有撞到某条蛇的身体和墙
+    check_valid(cell) {
+        // 有没有撞到墙
+        for (const wall of this.walls) {
+            if (wall.r === cell.rows && wall.c === cell.columns) {
+                return false;
+            }
+        }
+
+        // 有没有撞到蛇
+        for (const snake of this.snakes) {
+            // 单独判断蛇尾是否会缩：如果缩了，可以走；没缩则不能走
+            let k = snake.cells.length;
+            if (!snake.check_tail_increasing()) { // 蛇尾需要前进的时候，则不需要判断
+                k --;
+            }
+            for (let i = 0; i < k; i ++) {
+                if (snake.cells[i].rows === cell.rows && snake.cells[i].columns === cell.columns) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+    }
+
     update() {
         this.update_size();
+        if (this.check_ready()) {
+            // 若蛇都可以准备好进入下一回合了，则让两条蛇进入下一回合
+            this.next_step();
+        }
         this.render();
     }
 

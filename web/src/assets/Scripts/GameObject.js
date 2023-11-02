@@ -45,7 +45,7 @@ const step = timeStamp => {
             obj.has_called_start = true;
             obj.start();
         } else {
-            obj.timedelta = timeStamp - last_timeStamp;
+            obj.timedelta = timeStamp - last_timeStamp; // 当前这帧距离上一帧的时间间隔，单位是毫秒
             obj.update();
         }
     }
