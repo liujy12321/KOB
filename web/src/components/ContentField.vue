@@ -1,3 +1,7 @@
+<!-- 
+    common parts, which are shown in other components.
+ -->
+ 
 <template>
     <div class="container content-field">
         <div class="card">
