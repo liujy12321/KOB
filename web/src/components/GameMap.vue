@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { GameMap } from '@/assets/Scripts/GameMap';
+import { GameMap } from '@/assets/scripts/GameMap';
 import { ref, onMounted } from 'vue';
 
 export default {
