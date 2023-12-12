@@ -1,4 +1,6 @@
 import { createStore } from 'vuex'
+/* 将user加入到全局中 */
+import ModuleUser from './user'
 
 export default createStore({
   state: {
@@ -10,5 +12,6 @@ export default createStore({
   actions: {
   },
   modules: {
+    user: ModuleUser,
   }
 })
