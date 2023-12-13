@@ -32,23 +32,40 @@
 import ContentField from '../../../components/ContentField.vue' //在account文件夹下，所以多了一层目录
 import { useStore } from 'vuex' //引入全局变量
 import { ref } from 'vue' //引入变量
+import router from '@/router/index'
 
 export default {
     components: {
         ContentField
     },
     setup() {
-        const store = useStore();
-        let username = ref('');
+        const store = useStore(); //取出全局变量
+        let username = ref(''); //一开始是空的
         let password = ref('');
         let error_message = ref('');
 
         /* 
         如果点击了就会触发这个函数，需要和form表单绑定起来
         如果想调用全局中actions里的函数，需要用dispatch
+        dispatch：取login函数，需要获得username和password的value，查看获取的结果
          */
         const login = () => {
-            store.dispatch("login")
+            error_message.value = ""; //每次提交都需要清空error_message
+            store.dispatch("login", {
+                username: username.value,
+                password: password.value,
+                success() {
+                    store.dispatch("getinfo", { //更新用户信息
+                        success() {
+                            router.push({ name: 'home'}); //登录成功后跳转到主界面
+                            console.log(store.state.user);
+                        }
+                    })
+                },
+                error() {
+                    error_message.value = "Username or password is not correct";
+                }
+            })
         }
 
         return {
