@@ -6,7 +6,8 @@ getters：一般用不到
 mutations：修改数据，辅助函数updateUser：将存入的user信息放入state中；updateToken：将token的信息放入state中; logout：登出
 actions：  
     登录login：用ajax；用户名和密码从data里传，登录成功的话需要将token存下来，actions里调用mutations的函数需要用commit
-    动态获取用户信息getinfo：ajax； */
+    动态获取用户信息getinfo：ajax； 
+*/
 import $ from 'jquery'
 
 export default {

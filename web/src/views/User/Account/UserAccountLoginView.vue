@@ -58,7 +58,6 @@ export default {
                     store.dispatch("getinfo", { //更新用户信息
                         success() {
                             router.push({ name: 'home'}); //登录成功后跳转到主界面
-                            console.log(store.state.user);
                         }
                     })
                 },
