@@ -51,7 +51,7 @@ export default {
         let error_message = ref('');
 
         const register = () => {
-            /* ajax访问后端api */
+            /* ajax访问后端api，不会修改state的值，所以不放到user.js里；要修改state，才需要放到user里 */
             $.ajax({
                 url: "http://localhost:3000/user/account/register/",
                 type: "post",
@@ -65,7 +65,11 @@ export default {
                     confirmedPassword: confirmedPassword.value,
                 },
 
-                /* 字典：关键字里的字符串可以把引号去掉；关键字对应的值是一个函数：可以去掉function简写 */
+                /* 
+                    字典：关键字里的字符串可以把引号去掉；关键字对应的值是一个函数：可以去掉function简写
+                    本来是："success": function(resp)
+                    简写：success(resp)
+                 */
                 /* 
                     若注册成功，则直接跳转到登录页面
                     若失败，则显示错误信息

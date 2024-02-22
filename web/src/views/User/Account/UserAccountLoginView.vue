@@ -1,5 +1,5 @@
 <template>
-    <ContentField>
+    <ContentField v-if="!$store.state.user.pulling_info">
         <!-- 
             bootstrap里的：
             grid：横纵分成12份，放到中间3份
@@ -43,6 +43,33 @@ export default {
         let username = ref(''); //一开始是空的
         let password = ref('');
         let error_message = ref('');
+        /*
+            刷新每次会自动跳转到未登录状态，就会跳转到登录页面
+            每次登录的时候，检查localStorage是否有jwt token，如果有的话就将其取出并存下来更新token
+            更新token的函数在user.js里mutations的updateToken，mutations进行的是修改状态的同步操作，所以用commit
+            验证token是否合法：
+                从云端获取一遍用户信息：
+                    user.js里actions的getinfo，由于actions是异步操作，调用需要用到dispatch
+                    异步操作：需要到云端拉取信息后才会继续执行，放到actions里，调用为dispatch
+                    同步操作：放到mutations，调用为commit
+                    getinfo里有context和data两个参数，context对应的调用“getinfo”，data对应成功时的回调函数和失败时的回调函数
+                    如果成功，则跳转到首页: router.push
+         */
+        const jwt_token = localStorage.getItem("jwt_token");
+        if (jwt_token) {
+            store.commit("updateToken", jwt_token);
+            store.dispatch("getinfo", {
+                success() {
+                    router.push({ name: "home" });
+                    store.commit("updatePullingInfo", false);
+                },
+                error() {
+                    store.commit("updatePullingInfo", false);
+                }
+            })
+        } else {
+            store.commit("updatePullingInfo", false);
+        }
 
         /* 
         如果点击了就会触发这个函数，需要和form表单绑定起来

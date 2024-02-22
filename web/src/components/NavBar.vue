@@ -28,14 +28,14 @@
           </ul>
         </li>
       </ul>
-      <ul class="navbar-nav" v-else> <!-- 添加两个按钮：登录和注册 -->
+      <ul class="navbar-nav" v-else-if="!$store.state.user.pulling_info"> <!-- 添加两个按钮：登录和注册 -->
         <li class="nav-item">
-          <router-link class="nav-link" :to="{name: 'user_account_login'}" href="#" role="button"> <!-- 点击登录可以跳转到页面 -->
+          <router-link class="nav-link" :to="{name: 'user_account_login'}" role="button"> <!-- 点击登录可以跳转到页面 -->
             Log in
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link class="nav-link" :to="{name: 'user_account_register'}" href="#" role="button"> <!-- 点击注册可以跳转到页面 -->
+          <router-link class="nav-link" :to="{name: 'user_account_register'}" role="button"> <!-- 点击注册可以跳转到页面 -->
             Register
           </router-link>
         </li>
