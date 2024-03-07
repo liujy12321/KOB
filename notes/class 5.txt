@@ -1,0 +1,113 @@
+实现内容：
+    1. 个人中心页面以及bot页面
+    2. 数据库：创建bot列表
+
+1. 数据库创建bot表：
+    id: int：非空、自动增加、唯一、主键
+    user_id: int：非空
+    注意：在pojo中需要定义成userId，在queryWrapper中的名称仍然为user_id
+    title: varchar(100)
+    description: varchar(300)
+    content：varchar(10000)
+    rating: int：默认值为1500
+    createtime: datetime
+    pojo中定义日期格式的注解：@JsonFormat(pattern = “yyyy-MM-dd HH:mm:ss”)
+    modifytime: datetime
+    pojo中定义日期格式的注解：@JsonFormat(pattern = “yyyy-MM-dd HH:mm:ss”)
+
+2. 新建pojo将bot表里的内容映射出来：pojo包下的Bot.java
+    内容基本和User的pojo是一样的
+    数据库里如果是int，pojo里最好用integer，否则会报警告
+    数据库里用下划线命名的，pojo里用驼峰命名法，在query wrapper里还是用回数据库带下划线的名
+
+3. 实现mapper：mapper包下的BotMapper.java（接口Interface）
+    加上Annotation：@Mapper
+    BotMapper继承自BaseMapper，存放类型为Bot
+
+4. 实现4个API：
+    实现到三个地方：service，controller
+    每一个API对应一个controller
+    每次需要创建新东西的时候，都需要：
+        加到数据库中，创建一个新的表->创建pojo->创建Mapper
+    需要实现的4个接口主要用途：CRUD
+        AddService: 
+            添加bot
+            返回值不知道是什么可以用Map<String, String>
+            接口里默认使用的public修饰
+            传入数据，也是Map<String, String>，可以叫data
+        RemoveService：
+            删除bot
+            同理，和AddService一样
+        UpdateService：
+            更新bot
+            同理，和AddService一样
+        GetListService: 
+            获取bot
+            需要返回List（一堆bot），所以返回值是List
+            返回每个人自己所拥有的bot，userId存在pojo里，所以getList可以不用传参数
+
+    接口的实现：在service层里的user新建bot包，表示实现对应的接口
+        AddService：
+            需要知道当前的user是谁：在InfoServiceImpl里的getinfo()有用到怎么取user，直接照抄
+            
+            需要知道插入什么信息：title，description，content，从传入的data中获取title，description和content（data是map，所以对应的key就是内容）
+            
+            需要对三个信息进行判断：是否为空，是否超过最大长度，并将判断完的信息存到一个新的map里
+            
+            三个信息都合法，就可以创建bot实例：
+                根据pojo进行创建：id是自增的可以传一个null，UserId=user.getId()，title，description，content，rating默认1500，creatingtime和modificationtime都是现在（创建Date类的实例now）
+            
+            创建完成后加入到数据库中：
+                需要注入数据库接口：BotMapper
+                加入进数据库：botMapper.insert(bot)
+                将成功加入bot的信息加入进map
+           
+            实现controller：AddController
+                加上注解RestController
+                将实现的AddService注入
+                因为修改了数据库，因此需要使用POST方法@PostMapping，后面接上接口的名称
+                通过调用这个接口，将获得的信息通过addService加入，因此返回的是map，参数就是传入的信息data，也是map类型
+                    
+                    @PostMapping("/user/bot/add/")
+                    public Map<String, String> add(@RequestParam Map<String, String> data) {
+                        return addService.add(data);
+                    }
+
+            测试接口：
+                前端测试：使用ajax
+                在UserBotsIndexView.vue里的script可以测试，需要import jquery以及useStore
+                export default：定义setup()函数
+                    store：调用useStore()
+                    使用ajax：$.ajax()，里面需要包含测试的url，接口使用的方法类型type，以及里面包含的信息data和验证headers
+                    import $ from 'jquery'
+                    import { useStore } from 'vuex'
+
+                    export default {
+                        components: {
+                            ContentField
+                        },
+                        setup() {
+                            const store = useStore();
+                            $.ajax ({
+                                url: "http://localhost:3000/user/bot/add/",
+                                type: "POST",
+                                data: {
+                                    title: "the title of the bot",
+                                    description: "the description of the bot",
+                                    content: "the content of the bot",
+                                },
+                                headers: {
+                                    Authorization: "Bearer " + store.state.user.token,
+                                },
+                                success(resp) {
+                                    console.log(resp);
+                                },
+                                error(resp) {
+                                    console.log(resp);
+                                }
+                            })
+                        }
+                    }
+
+
+
