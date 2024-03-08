@@ -25,7 +25,7 @@
     BotMapper继承自BaseMapper，存放类型为Bot
 
 4. 实现4个API：
-    实现到三个地方：service，controller
+    实现到两个地方：service，controller
     每一个API对应一个controller
     每次需要创建新东西的时候，都需要：
         加到数据库中，创建一个新的表->创建pojo->创建Mapper
@@ -62,52 +62,88 @@
                 加入进数据库：botMapper.insert(bot)
                 将成功加入bot的信息加入进map
            
-            实现controller：AddController
-                加上注解RestController
-                将实现的AddService注入
-                因为修改了数据库，因此需要使用POST方法@PostMapping，后面接上接口的名称
-                通过调用这个接口，将获得的信息通过addService加入，因此返回的是map，参数就是传入的信息data，也是map类型
-                    
-                    @PostMapping("/user/bot/add/")
-                    public Map<String, String> add(@RequestParam Map<String, String> data) {
-                        return addService.add(data);
+        实现controller：AddController
+            加上注解RestController
+            将实现的AddService注入
+            因为修改了数据库，因此需要使用POST方法@PostMapping，后面接上接口的名称
+            通过调用这个接口，将获得的信息通过addService加入，因此返回的是map，参数就是传入的信息data，也是map类型
+            具体代码：
+            @PostMapping("/user/bot/add/")
+            public Map<String, String> add(@RequestParam Map<String, String> data) {
+                return addService.add(data);
+            }
+
+        测试接口：
+            前端测试：使用ajax
+            在UserBotsIndexView.vue里的script可以测试，需要import jquery以及useStore
+            export default：定义setup()函数
+                store：调用useStore()
+                使用ajax：$.ajax()，里面需要包含测试的url，接口使用的方法类型type，以及里面包含的信息data和验证headers
+                import $ from 'jquery'
+                import { useStore } from 'vuex'
+
+                export default {
+                    components: {
+                        ContentField
+                    },
+                    setup() {
+                        const store = useStore();
+                        $.ajax ({
+                            url: "http://localhost:3000/user/bot/add/",
+                            type: "POST",
+                            data: {
+                                title: "the title of the bot",
+                                description: "the description of the bot",
+                                content: "the content of the bot",
+                            },
+                            headers: {
+                                Authorization: "Bearer " + store.state.user.token,
+                            },
+                            success(resp) {
+                                console.log(resp);
+                            },
+                            error(resp) {
+                                console.log(resp);
+                            }
+                        })
                     }
-
-            测试接口：
-                前端测试：使用ajax
-                在UserBotsIndexView.vue里的script可以测试，需要import jquery以及useStore
-                export default：定义setup()函数
-                    store：调用useStore()
-                    使用ajax：$.ajax()，里面需要包含测试的url，接口使用的方法类型type，以及里面包含的信息data和验证headers
-                    import $ from 'jquery'
-                    import { useStore } from 'vuex'
-
-                    export default {
-                        components: {
-                            ContentField
-                        },
-                        setup() {
-                            const store = useStore();
-                            $.ajax ({
-                                url: "http://localhost:3000/user/bot/add/",
-                                type: "POST",
-                                data: {
-                                    title: "the title of the bot",
-                                    description: "the description of the bot",
-                                    content: "the content of the bot",
-                                },
-                                headers: {
-                                    Authorization: "Bearer " + store.state.user.token,
-                                },
-                                success(resp) {
-                                    console.log(resp);
-                                },
-                                error(resp) {
-                                    console.log(resp);
-                                }
-                            })
-                        }
-                    }
+                }
 
 
+    实现第二个API：remove，基本和AddService是一样的
+        1. 找出当前的用户，判断bot是不是用户的
+        2. 注入BotMapper
+        3. 从参数data中找到bot的id，再通过botMapper从数据库中取出id一样的bot
+        4. 判断bot的几种情况：
+            bot可能为空的时候
+            bot不是当前用户的时候
+        5. 删除bot：通过botMapper找到对应id的bot，deleteById即可，并将成功的信息放到map里
 
+        实现remove API对应的controller：
+            1. 注入remove service
+            2. 因为修改了数据库，所以是Post方法
+            3. 同理和add service一样，返回map，传入参数也是map，返回的就是调用remove service后的remove方法
+    
+        测试接口： 
+            1. 同理，也和add service一样
+            2. data部分不同：是bot_id（注意名字要和后端对应）
+
+    实现第三个API：update
+        1. 同理，只能更新自己的bot，因此也需要先找出当前用户
+        2. 需要知道更新的是哪一个bot，通过botMapper使用bot_id去确定，也需要判断bot是否为空或bot有没有权限修改
+        3. 要更新的信息包括：title，description和content，因此和add一样，需要对这三个进行判断（可以直接复制add这部分的代码）
+        4. 以上判断都成功后，创建一个新的bot
+        5. 新bot的信息：
+            新bot的id和原先bot是一样的，userId也是
+            title，description和content都是传过来的
+            rating也是原先bot
+            createtime也是原先bot
+            modifytime就是当前时间，因此需要new Date()
+        6. 新建bot后，通过botMapper去update，并将成功的信息放到map中
+
+        实现controller：同理
+
+        测试接口：
+            1. 同理前两个接口
+            2. data不同：需要
+    
