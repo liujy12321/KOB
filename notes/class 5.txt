@@ -146,4 +146,18 @@
         测试接口：
             1. 同理前两个接口
             2. data不同：需要
+
+    实现第四个API：getList
+        1. 同理，查询出当前的用户
+        2. 注入BotMapper，用来查询所有bot
+        3. 封装一个query wrapper，表示查询的条件
+        4. 查询的条件：只有user id是当前用户的才选
+
+        实现controller：
+            1. 注入对应的getlist service
+            2. 因为是获取操作，所以用@GetMapping就行
+            3. 返回的是List，里面存的bot，直接调用注入的service并使用对应的API getList()
+
+        测试接口：
+            1. 
     
