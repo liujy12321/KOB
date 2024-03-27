@@ -1,20 +1,76 @@
 <template>
-    <ContentField>
-        My bots
-    </ContentField>
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-body">
+                        <img :src="$store.state.user.image" alt="" style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <span style="font-size: 140%">My Bot</span> 
+                        <button type="button" class="btn btn-primary float-end">
+                            Create bot
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Created time</th>
+                                    <th>Operations</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="bot in bots" :key="bot-id">
+                                    <td>{{ bot.title }}</td>
+                                    <td>{{ bot.createtime }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary" style="margin-right: 10px;">Change</button>
+                                        <button type="button" class="btn btn-danger">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-import ContentField from '../../../components/ContentField.vue'
+import { ref } from 'vue'
 import $ from 'jquery'
-import { useStore } from 'vuex'
+import { useStore } from 'vuex';
 
 export default {
-    components: {
-        ContentField
-    },
     setup() {
         const store = useStore();
+        let bots = ref([]);
+
+        const refresh_bots = () => {
+            $.ajax({
+                url: "http://localhost:3000/user/bot/getlist/",
+                type: "GET",
+                headers: {
+                    Authorization: "Bearer " + store.state.user.token,
+                },
+                success(resp) {
+                    bots.value = resp;
+                }
+            })
+        }
+
+        refresh_bots();
+
+        return {
+            bots
+        }
         // $.ajax ({
         //     url: "http://localhost:3000/user/bot/add/",
         //     type: "POST",
@@ -71,19 +127,19 @@ export default {
         //     }
         // })
 
-        $.ajax ({
-            url: "http://localhost:3000/user/bot/getlist/",
-            type: "GET",
-            headers: {
-                Authorization: "Bearer " + store.state.user.token,
-            },
-            success(resp) {
-                console.log(resp);
-            },
-            error(resp) {
-                console.log(resp);
-            }
-        })
+        // $.ajax ({
+        //     url: "http://localhost:3000/user/bot/getlist/",
+        //     type: "GET",
+        //     headers: {
+        //         Authorization: "Bearer " + store.state.user.token,
+        //     },
+        //     success(resp) {
+        //         console.log(resp);
+        //     },
+        //     error(resp) {
+        //         console.log(resp);
+        //     }
+        // })
     }
 }
 </script>

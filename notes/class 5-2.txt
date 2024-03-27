@@ -1,0 +1,40 @@
+这节课的目标：
+    1. 实现前端页面部分，分为头像部分和内容部分
+
+1. 头像部分：
+    1. bootstrap里面搜索grids，一行当成12份，可以规定所占的份数
+    2. 头像占3份，内容部分占9份
+    3. 将所有内容都放到一个container里，这个container会动态的调整内部区域
+    4. 左边占3份，因此是<div class="col-3">
+    5. 画一个小的白色区域：bootstrap->cards
+    6. 在card-body里加上图片的链接(图片在$store.state.user.image中，注意如果链接不是字符串，则需要在img后面加上冒号)，同时宽度可以设置成100%
+    7. 添加上边距：在div card里添加style -> margin-top： 20px
+
+2. 内容部分：
+    1. 剩下的9份就是内容部分，因此是<div class="col-9">
+    2. 同理，写一个card，加上标题card-header，同理也需要相同的上边距
+    3. header下面就是卡片的内容区域：card-body
+    4. 添加按钮：bootstrap里搜索buttons，向右对齐：在class里加上float-end即可
+    5. 字体加大：可以使用<span style="font-size">实现
+    6. 展示所有bot：
+        1. 定义变量：{ref}
+        2. 获取bot列表：调用getlist api
+            1. import $ from 'jquery'
+            2. import { useStore } from 'vuex'
+            3. 在export default里的setup()调用useStore()
+            4. 定义bots：一开始是空的ref([])
+            5. 写一个函数：刷新列表refresh_bots，通过调用ajax进行前后端的交互：
+                1. 传入url：/user/bot/getlist/
+                2. 方法：get
+                3. 没有传入参数
+                4. 传入验证的token：参考前面ajax的headers部分
+                5. 成功的话：显示bot，bots.value = resp(后端返回的就是列表)
+            6. 调用函数refresh_bots
+            7. 返回bots即可
+    7. 将获取到的bots渲染到前端：
+        1. bootstrap里搜一个好看的表格：tables，将代码复制到card-body下
+        2. 加上表头thead，tr以及th；需要包含bot名称，创建时间以及操作
+        3. 加上表格的身体tbody，tr里面放入bot，每一个bot占一行，使用vue里的循环写法：v-for
+            <tr v-for="bot in bots" :key="bot.id">（每一行有一个不同的id，用来赋值）
+            1. <td>表格中的一列，分别有三列（3个<td>），对应{{bot.title}}, {{bot.createtime}}, 修改和删除（添加buttons）
+            2. buttons添加偏移量：style="margin-right: 10px;"
